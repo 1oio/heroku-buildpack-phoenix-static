@@ -128,6 +128,7 @@ install_and_cache_node_modules() {
   if [ -d $app_cache_dir/node_modules ]; then
     info "Loading node modules from cache"
     info "cp -R $app_cache_dir/node_modules/* node_modules/"
+    mkdir -p node_modules
     cp -R $app_cache_dir/node_modules/* node_modules/
   fi
 
