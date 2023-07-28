@@ -25,9 +25,14 @@ download_node() {
 
   if [ ! -f ${cached_node} ]; then
     echo "Resolving node version $node_version..."
-    if ! read number url < <(curl --silent --get --retry 5 --retry-max-time 15 --data-urlencode "range=$node_version" "https://nodebin.herokai.com/v1/node/$platform/latest.txt"); then
-      fail_bin_install node $node_version;
-    fi
+
+    # Code below is dead. Heroku killed the nodebin service.
+    # if ! read number url < <(curl --silent --get --retry 5 --retry-max-time 15 --data-urlencode "range=$node_version" "https://nodebin.herokai.com/v1/node/$platform/latest.txt"); then
+    #   fail_bin_install node $node_version;
+    # fi
+
+    # Instead, we'll temporary just use the lts versions from: https://nodejs.org/en/download starting from node 18 onwards
+    url="https://nodejs.org/dist/v18.17.0/node-v18.17.0-linux-x64.tar.xz"
 
     echo "Downloading and installing node $number..."
     local code=$(curl "$url" -L --silent --fail --retry 5 --retry-max-time 15 -o ${cached_node} --write-out "%{http_code}")
@@ -77,10 +82,10 @@ install_node() {
 
 install_npm() {
   # Optionally bootstrap a different npm version
-  if [ ! $npm_version ] || [[ `npm --version` == "$npm_version" ]]; then
-    info "Using default npm version `npm --version`"
+  if [ ! $npm_version ] || [[ $(npm --version) == "$npm_version" ]]; then
+    info "Using default npm version $(npm --version)"
   else
-    info "Downloading and installing npm $npm_version (replacing version `npm --version`)..."
+    info "Downloading and installing npm $npm_version (replacing version $(npm --version))..."
     cd $build_dir
     npm install --unsafe-perm --quiet -g npm@$npm_version 2>&1 >/dev/null | indent
   fi
@@ -202,7 +207,10 @@ run_compile() {
 
   cd $phoenix_dir
 
-  has_clean=$(mix help "${phoenix_ex}.digest.clean" 1>/dev/null 2>&1; echo $?)
+  has_clean=$(
+    mix help "${phoenix_ex}.digest.clean" 1>/dev/null 2>&1
+    echo $?
+  )
 
   if [ $has_clean = 0 ]; then
     mkdir -p $app_cache_dir/phoenix-static
@@ -230,7 +238,10 @@ run_compile() {
 }
 
 remove_assets_node_modules_from_path() {
-  export PATH=$(p=$(echo $PATH | tr ":" "\n" | grep -v "/$assets_dir/node_modules/.bin" | tr "\n" ":"); echo ${p%:})
+  export PATH=$(
+    p=$(echo $PATH | tr ":" "\n" | grep -v "/$assets_dir/node_modules/.bin" | tr "\n" ":")
+    echo ${p%:}
+  )
 }
 
 remove_assets_node_modules() {
@@ -240,8 +251,8 @@ remove_assets_node_modules() {
 
 cache_versions() {
   info "Caching versions for future builds"
-  echo `node --version` > $cache_dir/node-version
-  echo `npm --version` > $cache_dir/npm-version
+  echo $(node --version) >$cache_dir/node-version
+  echo $(npm --version) >$cache_dir/npm-version
 }
 
 finalize_node() {
@@ -256,7 +267,7 @@ write_profile() {
   info "Creating runtime environment"
   mkdir -p $build_dir/.profile.d
   local export_line="export PATH=\"\$HOME/.heroku/node/bin:\$HOME/.heroku/yarn/bin:\$HOME/bin:\$HOME/$assets_dir/node_modules/.bin:\$PATH\""
-  echo $export_line >> $build_dir/.profile.d/phoenix_static_buildpack_paths.sh
+  echo $export_line >>$build_dir/.profile.d/phoenix_static_buildpack_paths.sh
 }
 
 remove_node() {
