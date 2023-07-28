@@ -32,7 +32,7 @@ download_node() {
     # fi
 
     # Instead, we'll temporary just use the lts versions from: https://nodejs.org/en/download starting from node 18 onwards
-    url="https://nodejs.org/dist/v18.17.0/node-v18.17.0-linux-x64.tar.xz"
+    url="https://nodejs.org/dist/v18.17.0/node-v18.17.0-linux-x64.tar.gz"
 
     echo "Downloading and installing node $number..."
     local code=$(curl "$url" -L --silent --fail --retry 5 --retry-max-time 15 -o ${cached_node} --write-out "%{http_code}")
